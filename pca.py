@@ -42,8 +42,8 @@ def main():
     #plot variance over components
     plt.figure(figsize=(8, 6))
     plt.plot(np.cumsum(pca.explained_variance_ratio_))
-    plt.xlabel('Number of Components')
-    plt.ylabel('Cumulative Explained Variance')
+    plt.xlabel('Dimensions')
+    plt.ylabel('Cumulative Variance')
     plt.show()
 
     #print accuracy by reconstruct image from pca
