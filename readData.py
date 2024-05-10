@@ -1,10 +1,17 @@
 # Lorant Albert
-# data read
+# read data of CIFAR
+# download: https://www.cs.toronto.edu/~kriz/cifar.html
+# implementation in other file:
+#   1. from readData import load_cifar10_data
+#   2. path_to_dataset = "cifar-10-python.tar.gz"  # replace with your path
+#   3. train_data, train_labels, test_data, test_labels = load_cifar10_data(path_to_dataset)
 
 import tarfile
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
+
+NUM_IMAGE_TRAIN = 10000
+NUM_IMAGE_TEST = 2000
 
 
 def load_cifar10_data(path_to_dataset):
@@ -35,7 +42,15 @@ def load_cifar10_data(path_to_dataset):
     test_data = test_data_dict[b'data']
     test_labels = np.array(test_data_dict[b'labels'])
 
-    return train_data, train_labels, test_data, test_labels
+    # Select a subset for training
+    train_data_subset = train_data[:NUM_IMAGE_TRAIN]
+    train_labels_subset = train_labels[:NUM_IMAGE_TRAIN]
+
+    # Select a subset for testing
+    test_data_subset = test_data[:NUM_IMAGE_TEST]
+    test_labels_subset = test_labels[:NUM_IMAGE_TEST]
+
+    return train_data_subset, train_labels_subset, test_data_subset, test_labels_subset
 
 
 def main():
@@ -44,8 +59,7 @@ def main():
 
     # Display the first image
     img = train_data[0].reshape((3, 32, 32)).transpose((1, 2, 0))
-    plt.imshow(img)
-    plt.show()
+    print("Train:" + str(len(train_data)) + " / Test: " + str(len(test_data)))
 
 
 # set name if run directly
