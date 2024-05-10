@@ -1,10 +1,10 @@
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
 import numpy as np
+from tensorflow.keras.datasets import cifar10
 
 # CIFAR-10 Daten laden und vorbereiten
 def load_and_preprocess_cifar10():
-    from tensorflow.keras.datasets import cifar10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     # Einfaches Preprocessing (Normierung)
@@ -42,3 +42,4 @@ if __name__ == "__main__":
     print(f"KNN Accuracy: {accuracy:.4f}")
     print("\nClassification Report:")
     print(report)
+``
