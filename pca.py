@@ -8,11 +8,15 @@ NUM_TRAIN_DATA = 1000
 NUM_TEST_DATA = 2000
 
 
-def get_pca_features(imageData, dimensions, print_pca_data=False):
-    pca = PCA(n_components=dimensions)
-    fData = pca.fit_transform(imageData)
+def get_pca_features(image_data, dimensions, print_pca_data=False):
+    #flatten data for pca
+    flat_image_data = image_data.reshape((len(image_data), -1))
 
-    # DEBUGING
+    #compute pca
+    pca = PCA(n_components=dimensions)
+    fData = pca.fit_transform(flat_image_data)
+
+    # DEBUGING --> only if Flag is on true
     if print_pca_data:
         # print variance per dimension
         print('Explained variance by each component: ', pca.explained_variance_ratio_)
@@ -26,7 +30,7 @@ def get_pca_features(imageData, dimensions, print_pca_data=False):
 
         # print accuracy by reconstruct image from pca
         data_inverse = pca.inverse_transform(fData)
-        reconstruction_error = np.mean((imageData - data_inverse) ** 2)
+        reconstruction_error = np.mean((flat_image_data - data_inverse) ** 2)
         print('Reconstruction error: ', reconstruction_error)
 
     return fData
@@ -46,12 +50,8 @@ def main():
     X_train = train_data[b'data'][:NUM_TRAIN_DATA]
     X_test = test_data[b'data'][:NUM_TEST_DATA]
 
-    # Flatten the images for PCA
-    X_train = X_train.reshape((len(X_train), -1))
-    X_test = X_test.reshape((len(X_test), -1))
-
     # Apply PCA
-    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS, False)
+    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS)
     X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS)
 
     # Save the PCA transformed data
