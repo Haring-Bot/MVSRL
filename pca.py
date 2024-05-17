@@ -1,4 +1,10 @@
+# Lorant Albert
+# 17/05/2024
+# pca feature extraction
+# TODO: nothing, should work
+
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
@@ -8,9 +14,15 @@ NUM_TRAIN_DATA = 1000
 NUM_TEST_DATA = 2000
 
 
+#function that can be used in main:
 def get_pca_features(image_data, dimensions, print_pca_data=False):
-    #flatten data for pca
-    flat_image_data = image_data.reshape((len(image_data), -1))
+
+    #normalize mean 0 std-deviation 1
+    scaler = StandardScaler()
+    image_data_scaled = scaler.fit_transform(image_data)
+
+    #flatten data for pca --> 3 channel to 1 channel (1D)
+    flat_image_data = image_data_scaled.reshape((len(image_data_scaled), -1))
 
     #compute pca
     pca = PCA(n_components=dimensions)
@@ -33,8 +45,9 @@ def get_pca_features(image_data, dimensions, print_pca_data=False):
         reconstruction_error = np.mean((flat_image_data - data_inverse) ** 2)
         print('Reconstruction error: ', reconstruction_error)
 
-    return fData
+    return fData #return pca data
 
+# testing with main, not important for final code:
 def main():
     # Load CIFAR-10 data
     def unpickle(file):
