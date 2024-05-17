@@ -1,3 +1,9 @@
+# Lorant Albert
+# 17/05/2024
+# pca feature extraction
+# TODO: not sure if preproccecing of image done right
+# TODO: not sure if results are correct --> implement myb selftesting
+
 import numpy as np
 from skimage.feature import hog
 import pickle
@@ -5,6 +11,7 @@ import pickle
 NUM_TRAIN_DATA = 1000
 NUM_TEST_DATA = 2000
 
+# function that can be used in the main code for extracting hog features
 def compute_hog_features(data):
     hog_features = []
     for image in data:
@@ -31,21 +38,26 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
+# code for testing code, not further important for main project
+def main():
+    # Load CIFAR dataset
+    train_batch = unpickle('cifar-10-batches-py/data_batch_1')
+    test_batch = unpickle('cifar-10-batches-py/test_batch')
 
-# Load CIFAR dataset
-train_batch = unpickle('cifar-10-batches-py/data_batch_1')
-test_batch = unpickle('cifar-10-batches-py/test_batch')
+    # Extract the data
+    train_batch = train_batch[b'data'][:NUM_TRAIN_DATA]
+    test_batch = test_batch[b'data'][:NUM_TEST_DATA]
 
-# Extract the data
-train_batch = train_batch[b'data'][:NUM_TRAIN_DATA]
-test_batch = test_batch[b'data'][:NUM_TEST_DATA]
+    # Compute HOG features for training and testing data
+    X_train_hog = compute_hog_features(train_batch)
+    X_test_hog = compute_hog_features(test_batch)
 
-# Compute HOG features for training and testing data
-X_train_hog = compute_hog_features(train_batch)
-X_test_hog = compute_hog_features(test_batch)
+    # Save HOG features to a file
+    np.save('X_train_hog.npy', X_train_hog)
+    np.save('X_test_hog.npy', X_test_hog)
 
-# Save HOG features to a file
-np.save('X_train_hog.npy', X_train_hog)
-np.save('X_test_hog.npy', X_test_hog)
+    print("HOG features have been successfully saved to 'X_train_hog.npy' and 'X_test_hog.npy'")
 
-print("HOG features have been successfully saved to 'X_train_hog.npy' and 'X_test_hog.npy'")
+# set name if run directly
+if __name__ == "__main__":
+    main()
