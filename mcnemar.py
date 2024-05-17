@@ -3,7 +3,7 @@ from statsmodels.stats.contingency_tables import mcnemar
 # Kontingenztabelle erstellen
 table = np.zeros((2, 2))
 
-# Vergleiche die Vorhersagen
+# Vergleiche die Vorhersagen für PCA und als Alternative SVD
 for pca_pred, svd_pred, true_label in zip(y_pred_pca, y_pred_svd, y_test):
     if pca_pred == true_label and svd_pred == true_label:
         table[0, 0] += 1  # Beide korrekt
