@@ -11,8 +11,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from scipy import stats
 
 
-NUM_IMAGE_TRAIN = 1000
-NUM_IMAGE_TEST = 2000
+NUM_IMAGE_TRAIN = 10000
+NUM_IMAGE_TEST = 20000
 NUM_DIMENSIONS = 100
 NUM_TRAIN_DATA = 1000
 NUM_TEST_DATA = 2000
@@ -39,14 +39,18 @@ def unpickle(file):
 
 
 #function that can be used in main:
-def get_pca_features(image_data, dimensions, print_pca_data=False):
+def get_pca_features(image_data, dimensions, print_pca_data=True):
 
     #normalize mean 0 std-deviation 1
     scaler = StandardScaler()
+    #!!!PROBLEMS!!!
+    # the standard scaler and PCA dimension is saved in the function and therefore deleted everytime leading to different normalisations for every batch!!! 
     image_data_scaled = scaler.fit_transform(image_data)
 
+
     #flatten data for pca --> 3 channel to 1 channel (1D)
-    flat_image_data = image_data_scaled.reshape((len(image_data_scaled), -1))
+    #flat_image_data = image_data_scaled.reshape((len(image_data_scaled), -1))
+    flat_image_data = image_data_scaled
 
     #compute pca
     pca = PCA(n_components=dimensions)
@@ -55,7 +59,7 @@ def get_pca_features(image_data, dimensions, print_pca_data=False):
     # DEBUGING --> only if Flag is on true
     if print_pca_data:
         # print variance per dimension
-        print('Explained variance by each component: ', pca.explained_variance_ratio_)
+        #print('Explained variance by each component: ', pca.explained_variance_ratio_)
 
         # plot variance over components
         plt.figure(figsize=(8, 6))
@@ -156,8 +160,12 @@ def main():
     train_data, train_labels, test_data, test_labels = load_cifar10_data(path)
 
     # Display the first image
-    img = train_data[0].reshape((3, 32, 32)).transpose((1, 2, 0))
+    img = train_data[100].reshape((3, 32, 32)).transpose((1, 2, 0))
     print("Train:" + str(len(train_data)) + " / Test: " + str(len(test_data)))
+
+    plt.imshow(img)
+    print(train_data.shape)
+    plt.show()
 
     X_train_pca = get_pca_features(train_data, NUM_DIMENSIONS)
     X_test_pca = get_pca_features(test_data, NUM_DIMENSIONS)
