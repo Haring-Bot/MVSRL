@@ -9,9 +9,10 @@ import pickle
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import stats
+import cv2
 
 
-NUM_IMAGE_TRAIN = 1000
+NUM_IMAGE_TRAIN = 6000
 NUM_IMAGE_TEST = 2000
 NUM_DIMENSIONS = 100
 NUM_TRAIN_DATA = 1000
@@ -42,11 +43,11 @@ def unpickle(file):
 def get_pca_features(image_data, dimensions, print_pca_data=False):
 
     #normalize mean 0 std-deviation 1
-    scaler = StandardScaler()
-    image_data_scaled = scaler.fit_transform(image_data)
+    #scaler = StandardScaler()
+    #image_data_scaled = scaler.fit_transform(image_data)
 
     #flatten data for pca --> 3 channel to 1 channel (1D)
-    flat_image_data = image_data_scaled.reshape((len(image_data_scaled), -1))
+    flat_image_data = image_data.reshape((len(image_data), -1))
 
     #compute pca
     pca = PCA(n_components=dimensions)
@@ -96,19 +97,21 @@ def compute_hog_features(data):
 
 def load_cifar10_data(path_to_dataset):
     # Unpickle function
-    pathToBatches = "dataset/cifar-10-batches-py/"
+    def unpickle(file):
+        with open(file, 'rb') as fo:
+            dict = pickle.load(fo, encoding='bytes')
+        return dict
 
     tar = tarfile.open(path_to_dataset, "r:gz")
-    tar.extractall(path = "dataset/")
+    tar.extractall()
     tar.close()
 
     train_data = []
     train_labels = []
 
-    print("trying to load the dataset")
     # The CIFAR-10 dataset consists of 5 batches, named data_batch_1, data_batch_2, etc..
     for i in range(1, 6):
-        data_dict = unpickle(pathToBatches+ "data_batch_" + str(i))
+        data_dict = unpickle("cifar-10-batches-py/data_batch_" + str(i))
         if i == 1:
             train_data = data_dict[b'data']
             train_labels = data_dict[b'labels']
@@ -116,7 +119,7 @@ def load_cifar10_data(path_to_dataset):
             train_data = np.vstack((train_data, data_dict[b'data']))
             train_labels = np.hstack((train_labels, data_dict[b'labels']))
 
-    test_data_dict = unpickle(pathToBatches + "test_batch")
+    test_data_dict = unpickle("cifar-10-batches-py/test_batch")
     test_data = test_data_dict[b'data']
     test_labels = np.array(test_data_dict[b'labels'])
 
@@ -129,6 +132,7 @@ def load_cifar10_data(path_to_dataset):
     test_labels_subset = test_labels[:NUM_IMAGE_TEST]
 
     return train_data_subset, train_labels_subset, test_data_subset, test_labels_subset
+
 
 
 def downloadDataset(url):
@@ -148,16 +152,40 @@ def downloadDataset(url):
         return None  # Return None or raise the exception based on your needs
 
 
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
+
 
 def main():
-    url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
+    #url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
 
-    path = downloadDataset(url)
-    train_data, train_labels, test_data, test_labels = load_cifar10_data(path)
+    #path = downloadDataset(url)
+    path_to_dataset = "downloads/CIFAR-10_pickled.tar.gz"  # replace with your path
+    train_data, train_labels, test_data, test_labels = load_cifar10_data(path_to_dataset)
+
+
+    # Since CIFAR-10 images are 32x32 pixels and have 3 color channels (RGB)
+    #train_data = train_data.reshape((3, 32, 32)).transpose((1, 2, 0))
+    train_data = np.array([cv2.cvtColor(img.reshape(3, 32, 32).transpose(1, 2, 0), cv2.COLOR_BGR2GRAY) for img in train_data])
+
+    #gray_image = rgb2gray(train_data[1])
+
+
+    plt.imshow(train_data[1], cmap='gray')
+    plt.show()
+
+    # normalize image
+    scaler = StandardScaler()
+    #train_data = np.array(train_data).reshape(-1, 1)
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.transform(test_data)
+
 
     # Display the first image
     img = train_data[0].reshape((3, 32, 32)).transpose((1, 2, 0))
     print("Train:" + str(len(train_data)) + " / Test: " + str(len(test_data)))
+
+
 
     X_train_pca = get_pca_features(train_data, NUM_DIMENSIONS)
     X_test_pca = get_pca_features(test_data, NUM_DIMENSIONS)
@@ -179,32 +207,33 @@ def main():
 
 
     # Load PCA and HOG features
-    pca_train = np.load('dataset/pca/train_pca.npy')
-    pca_test = np.load('dataset/pca/test_pca.npy')
-    hog_train = np.load('dataset/hog/train_hog.npy')
-    hog_test = np.load('dataset/hog/test_hog.npy')
+    #pca_train = np.load('dataset/pca/train_pca.npy')
+    #pca_test = np.load('dataset/pca/test_pca.npy')
+    #hog_train = np.load('dataset/hog/train_hog.npy')
+    #hog_test = np.load('dataset/hog/test_hog.npy')
 
-    # Create and train the classifiers
-    pca_classifier = KNNClassifier(k=3)
-    pca_classifier.train(pca_train, train_labels)
+    for i in range(1, 6):
+        # Create and train the classifiers
+        pca_classifier = KNNClassifier(k=i)
+        pca_classifier.train(X_train_pca, train_labels)
 
-    hog_classifier = KNNClassifier(k=3)
-    hog_classifier.train(hog_train, train_labels)
+        hog_classifier = KNNClassifier(k=i)
+        hog_classifier.train(X_train_hog, train_labels)
 
-    # Test the classifiers
-    pca_preds = pca_classifier.predict(pca_test)
-    hog_preds = hog_classifier.predict(hog_test)
+        # Test the classifiers
+        pca_preds = pca_classifier.predict(X_test_pca)
+        hog_preds = hog_classifier.predict(X_test_hog)
 
-    # Calculate the accuracy
-    pca_accuracy = pca_classifier.score(pca_test, test_labels)
-    hog_accuracy = hog_classifier.score(hog_test, test_labels)
+        # Calculate the accuracy
+        pca_accuracy = pca_classifier.score(X_test_pca, test_labels)
+        hog_accuracy = hog_classifier.score(X_test_hog, test_labels)
 
-    print(f"PCA Accuracy: {pca_accuracy}")
-    print(f"HOG Accuracy: {hog_accuracy}")
+        print(f"PCA Accuracy: {pca_accuracy}")
+        print(f"HOG Accuracy: {hog_accuracy}")
 
-    # Compare the classifiers using p-value
-    t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
-    print(f"P-value: {p_value}")
+        # Compare the classifiers using p-value
+        t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
+        print(f"P-value: {p_value}")
 
 
 # set name if run directly
