@@ -1,6 +1,19 @@
 import cv2
 import numpy as np
 
+import readData
+import pca
+import KNN
+
+#download Data
+readData.main()
+
+#perform pca
+pca.main()
+
+#perform KNN
+KNN.main()
+
 # Create a black image
 image = np.zeros((500,500,3), np.uint8)
 
