@@ -1,5 +1,9 @@
 import cv2
 import numpy as np
+import readData
+
+#import data
+readData.main()
 
 # Create a black image
 image = np.zeros((500,500,3), np.uint8)
