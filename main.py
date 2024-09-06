@@ -13,5 +13,7 @@
 
 
 import readData
+import pca
 
 readData.main()
+pca.main()
