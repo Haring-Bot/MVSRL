@@ -57,15 +57,15 @@ def main():
 
 
     # Assuming you have the CIFAR-10 data in the same directory and it's named 'cifar-10-batches-py'
-    train_data = unpickle('cifar-10-batches-py/data_batch_1')
-    test_data = unpickle('cifar-10-batches-py/test_batch')
+    train_data = unpickle('dataset/cifar-10-batches-py/data_batch_1')
+    test_data = unpickle('dataset/cifar-10-batches-py/test_batch')
 
     X_train = train_data[b'data'][:NUM_TRAIN_DATA]
     X_test = test_data[b'data'][:NUM_TEST_DATA]
 
     # Apply PCA
-    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS)
-    X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS)
+    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS, True)
+    X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS, True)
 
     # Save the PCA transformed data
     np.save('X_train_pca.npy', X_train_pca)
