@@ -64,8 +64,8 @@ def main():
     X_test = test_data[b'data'][:NUM_TEST_DATA]
 
     # Apply PCA
-    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS, True)
-    X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS, True)
+    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS, False)
+    X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS, False)
 
     # Save the PCA transformed data
     np.save('X_train_pca.npy', X_train_pca)
