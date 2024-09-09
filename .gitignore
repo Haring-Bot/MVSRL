@@ -17,6 +17,7 @@ __pycache__/
 *.tar
 *.tar.gz
 *.tgz
+*.npy
 
 # Ignore log files
 *.log
