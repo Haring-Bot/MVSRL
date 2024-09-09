@@ -41,22 +41,16 @@ def unpickle(file):
 # code for testing code, not further important for main project
 def main():
     # Load CIFAR dataset
-    train_batch = unpickle('cifar-10-batches-py/data_batch_1')
-    test_batch = unpickle('cifar-10-batches-py/test_batch')
-
-    # Extract the data
-    train_batch = train_batch[b'data'][:NUM_TRAIN_DATA]
-    test_batch = test_batch[b'data'][:NUM_TEST_DATA]
+    train_batch = np.load("dataset/dataset_split/trainData.npy")
+    test_batch = np.load("dataset/dataset_split/testData.npy")
 
     # Compute HOG features for training and testing data
     X_train_hog = compute_hog_features(train_batch)
     X_test_hog = compute_hog_features(test_batch)
 
     # Save HOG features to a file
-    np.save('X_train_hog.npy', X_train_hog)
-    np.save('X_test_hog.npy', X_test_hog)
-
-    print("HOG features have been successfully saved to 'X_train_hog.npy' and 'X_test_hog.npy'")
+    np.save('dataset/HOG/trainHOG.npy', X_train_hog)
+    np.save('dataset/HOG/testHOG.npy', X_test_hog)
 
 # set name if run directly
 if __name__ == "__main__":
