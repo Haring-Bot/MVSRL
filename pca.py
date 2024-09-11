@@ -43,20 +43,16 @@ def main():
         return dict
 
 
-    # Assuming you have the CIFAR-10 data in the same directory and it's named 'cifar-10-batches-py'
-    train_data = unpickle('cifar-10-batches-py/data_batch_1')
-    test_data = unpickle('cifar-10-batches-py/test_batch')
-
-    X_train = train_data[b'data'][:NUM_TRAIN_DATA]
-    X_test = test_data[b'data'][:NUM_TEST_DATA]
+    train_data = np.load("dataset/dataset_split/trainData.npy")
+    test_data = np.load("dataset/dataset_split/testData.npy")
 
     # Apply PCA
-    X_train_pca = get_pca_features(X_train, NUM_DIMENSIONS)
-    X_test_pca = get_pca_features(X_test, NUM_DIMENSIONS)
+    trainPCA = get_pca_features(train_data, NUM_DIMENSIONS)
+    testPCA = get_pca_features(test_data, NUM_DIMENSIONS)
 
     # Save the PCA transformed data
-    np.save('X_train_pca.npy', X_train_pca)
-    np.save('X_test_pca.npy', X_test_pca)
+    np.save('dataset/PCA/testPCA.npy', testPCA)
+    np.save('dataset/PCA/trainPCA.npy', trainPCA)
 
 # set name if run directly
 if __name__ == "__main__":
