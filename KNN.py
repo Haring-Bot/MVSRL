@@ -10,65 +10,73 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import stats
 
-
-NUM_IMAGE_TRAIN = 10000
-NUM_IMAGE_TEST = 20000
-NUM_DIMENSIONS = 100
-NUM_TRAIN_DATA = 1000
-NUM_TEST_DATA = 2000
+CNN_PCA = True
+CNN_HOG = True
 
 
 class KNNClassifier:
-    def __init__(self, k=3):
+    def __init__(self, k=3, visu=False):
         self.k = k
-        self.model = KNeighborsClassifier(n_neighbors=k)
+        self.visu = visu
+        self.model = KNeighborsClassifier(
+            n_neighbors=k,
+            weights='distance',
+            algorithm='auto',
+            leaf_size=30,
+            p=2,
+            metric='minkowski',
+            n_jobs=-1  # Use all available cores
+        )
 
     def train(self, features, labels):
+        if self.visu:
+            print("Start Training Model...With Image Numbers:", len(features))
         self.model.fit(features, labels)
 
     def predict(self, features):
         return self.model.predict(features)
 
     def score(self, features, labels):
+        if self.visu:
+            print("Start Testing Model...With Image Numbers:", len(features))
         return self.model.score(features, labels)
 
 
 
 def main():
-
-    # Load PCA and HOG features
-    testPCA = np.load("dataset/PCA/testPCA.npy")
-    trainPCA = np.load("dataset/PCA/trainPCA.npy")
-
-    testHOG = np.load('dataset/HOG/testHOG.npy')
-    trainHOG = np.load('dataset/HOG/trainHOG.npy')
-
-    testLabel =np.load("dataset/dataset_split/testLabel.npy")
+    # Load Labels
+    testLabel = np.load("dataset/dataset_split/testLabel.npy")
     trainLabel = np.load("dataset/dataset_split/trainLabel.npy")
-    
 
-    # Create and train the classifiers
-    pca_classifier = KNNClassifier(k=3)
-    pca_classifier.train(trainPCA, trainLabel)
+    # PCA-KNN Classifer
+    if CNN_PCA:
+        pca_test = np.load("dataset/PCA/testPCA.npy")               # Load PCA features
+        pca_train = np.load("dataset/PCA/trainPCA.npy")
 
-    hog_classifier = KNNClassifier(k=3)
-    hog_classifier.train(trainHOG, trainLabel)
+        pca_classifier = KNNClassifier(k=3, visu=True)              # Create and train the classifiers
+        pca_classifier.train(pca_train, trainLabel)                 # Train the classifiers
+        pca_preds = pca_classifier.predict(pca_test)                # Test the classifiers
 
-    # Test the classifiers
-    pca_preds = pca_classifier.predict(testPCA)
-    hog_preds = hog_classifier.predict(testHOG)
+        pca_accuracy = pca_classifier.score(pca_test, testLabel)    # Calculate the accuracy
+        print(f"PCA Accuracy: {pca_accuracy}")
 
-    # Calculate the accuracy
-    pca_accuracy = pca_classifier.score(testPCA, testLabel)
-    hog_accuracy = hog_classifier.score(testHOG, testLabel)
+    # HOG-KNN Classifer
+    if CNN_HOG:
+        hog_test = np.load('dataset/hog/testHOG.npy')               # Load HOG features
+        hog_train = np.load('dataset/hog/trainHOG.npy')
 
-    print(f"PCA Accuracy: {pca_accuracy}")
-    print(f"HOG Accuracy: {hog_accuracy}")
+        hog_classifier = KNNClassifier(k=18, visu=True)             # Create and train the classifiers
 
-    # Compare the classifiers using p-value
-    t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
-    print(f"P-value: {p_value}")
+        hog_classifier.train(hog_train, trainLabel)                 # Test the classifiers
+        hog_preds = hog_classifier.predict(hog_test)                # Test the classifiers
 
+        hog_accuracy = hog_classifier.score(hog_test, testLabel)    # Calculate the accuracy
+        print(f"HOG Accuracy: {hog_accuracy}")
+
+    if CNN_PCA and CNN_HOG:
+        # Compare the classifiers using p-value
+        t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
+        print(f"P-value: {p_value}")
 
 # set name if run directly
 if __name__ == "__main__":
