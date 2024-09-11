@@ -40,8 +40,8 @@ def main():
     testPCA = np.load("dataset/PCA/testPCA.npy")
     trainPCA = np.load("dataset/PCA/trainPCA.npy")
 
-    #hog_test = np.load('dataset/hog/test_hog.npy')
-    #hog_train = np.load('dataset/hog/train_hog.npy')
+    testHOG = np.load('dataset/HOG/testHOG.npy')
+    trainHOG = np.load('dataset/HOG/trainHOG.npy')
 
     testLabel =np.load("dataset/dataset_split/testLabel.npy")
     trainLabel = np.load("dataset/dataset_split/trainLabel.npy")
@@ -52,22 +52,22 @@ def main():
     pca_classifier.train(trainPCA, trainLabel)
 
     hog_classifier = KNNClassifier(k=3)
-    #hog_classifier.train(testHOG, trainLabel)
+    hog_classifier.train(trainHOG, trainLabel)
 
     # Test the classifiers
     pca_preds = pca_classifier.predict(testPCA)
-    #hog_preds = hog_classifier.predict(testHOG)
+    hog_preds = hog_classifier.predict(testHOG)
 
     # Calculate the accuracy
     pca_accuracy = pca_classifier.score(testPCA, testLabel)
-    #hog_accuracy = hog_classifier.score(testHOG, testLabel)
+    hog_accuracy = hog_classifier.score(testHOG, testLabel)
 
     print(f"PCA Accuracy: {pca_accuracy}")
-    #print(f"HOG Accuracy: {hog_accuracy}")
+    print(f"HOG Accuracy: {hog_accuracy}")
 
     # Compare the classifiers using p-value
-    #t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
-    #print(f"P-value: {p_value}")
+    t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
+    print(f"P-value: {p_value}")
 
 
 # set name if run directly
