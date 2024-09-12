@@ -1,4 +1,28 @@
-/dataset/
-/downloads/
+# Ignore directories where downloaded and extracted datasets are stored
+downloads/
+dataset/
+.venv/
+--__pycache__/
 
+# Ignore any temporary or backup files
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore tar and gzip files
+*.tar
+*.tar.gz
+*.tgz
 *.npy
+
+# Ignore log files
+*.log
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/

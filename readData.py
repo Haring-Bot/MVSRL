@@ -81,8 +81,11 @@ def main():
     path = downloadDataset(url)
     train_data, train_labels, test_data, test_labels = load_cifar10_data(path)
 
-    # Display the first image
-    img = train_data[0].reshape((3, 32, 32)).transpose((1, 2, 0))
+    np.save("dataset/dataset_split/trainData", train_data)
+    np.save("dataset/dataset_split/trainLabel", train_labels)
+    np.save("dataset/dataset_split/testData", test_data)
+    np.save("dataset/dataset_split/testLabel", test_labels)
+
     print("Train:" + str(len(train_data)) + " / Test: " + str(len(test_data)))
 
 
