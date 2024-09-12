@@ -10,9 +10,6 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import stats
 
-CNN_PCA = True
-CNN_HOG = True
-
 
 class KNNClassifier:
     def __init__(self, k=3, visu=False):
@@ -43,13 +40,13 @@ class KNNClassifier:
 
 
 
-def main():
+def main(KNN_PCA=True, KNN_HOG=True):
     # Load Labels
     testLabel = np.load("dataset/dataset_split/testLabel.npy")
     trainLabel = np.load("dataset/dataset_split/trainLabel.npy")
 
     # PCA-KNN Classifer
-    if CNN_PCA:
+    if KNN_PCA:
         pca_test = np.load("dataset/PCA/testPCA.npy")               # Load PCA features
         pca_train = np.load("dataset/PCA/trainPCA.npy")
 
@@ -61,9 +58,9 @@ def main():
         print(f"PCA Accuracy: {pca_accuracy}")
 
     # HOG-KNN Classifer
-    if CNN_HOG:
-        hog_test = np.load('dataset/hog/testHOG.npy')               # Load HOG features
-        hog_train = np.load('dataset/hog/trainHOG.npy')
+    if KNN_HOG:
+        hog_test = np.load('dataset/HOG/testHOG.npy')               # Load HOG features
+        hog_train = np.load('dataset/HOG/trainHOG.npy')
 
         hog_classifier = KNNClassifier(k=18, visu=True)             # Create and train the classifiers
 
@@ -73,7 +70,7 @@ def main():
         hog_accuracy = hog_classifier.score(hog_test, testLabel)    # Calculate the accuracy
         print(f"HOG Accuracy: {hog_accuracy}")
 
-    if CNN_PCA and CNN_HOG:
+    if KNN_PCA and KNN_HOG:
         # Compare the classifiers using p-value
         t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
         print(f"P-value: {p_value}")

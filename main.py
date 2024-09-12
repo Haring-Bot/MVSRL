@@ -15,6 +15,7 @@ import numpy as np
 
 import readData
 import pca
+import HOG
 import KNN
 
 #download Data
@@ -22,6 +23,9 @@ readData.main()
 
 #perform pca
 pca.main()
+
+#perform HOG
+HOG.main()
 
 #perform KNN
 KNN.main()
