@@ -45,35 +45,49 @@ def main(KNN_PCA=True, KNN_HOG=True):
     testLabel = np.load("dataset/dataset_split/testLabel.npy")
     trainLabel = np.load("dataset/dataset_split/trainLabel.npy")
 
-    # PCA-KNN Classifer
-    if KNN_PCA:
-        pca_test = np.load("dataset/PCA/testPCA.npy")               # Load PCA features
-        pca_train = np.load("dataset/PCA/trainPCA.npy")
+    bestPCAaccuracy = 0
+    bestPCAk = 0
+    bestHOGaccuracy = 0
+    bestHOGk = 0
+    for i in range(1, 20):
+        # PCA-KNN Classifer
+        if KNN_PCA:
+            pca_test = np.load("dataset/PCA/testPCA.npy")               # Load PCA features
+            pca_train = np.load("dataset/PCA/trainPCA.npy")
 
-        pca_classifier = KNNClassifier(k=3, visu=True)              # Create and train the classifiers
-        pca_classifier.train(pca_train, trainLabel)                 # Train the classifiers
-        pca_preds = pca_classifier.predict(pca_test)                # Test the classifiers
+            pca_classifier = KNNClassifier(k=i, visu=True)              # Create and train the classifiers
+            pca_classifier.train(pca_train, trainLabel)                 # Train the classifiers
+            pca_preds = pca_classifier.predict(pca_test)                # Test the classifiers
 
-        pca_accuracy = pca_classifier.score(pca_test, testLabel)    # Calculate the accuracy
-        print(f"PCA Accuracy: {pca_accuracy}")
+            pca_accuracy = pca_classifier.score(pca_test, testLabel)    # Calculate the accuracy
+            print(f"PCA Accuracy: {pca_accuracy}")
+            if pca_accuracy > bestPCAaccuracy:
+                bestPCAaccuracy = pca_accuracy
+                bestPCAk = i
 
-    # HOG-KNN Classifer
-    if KNN_HOG:
-        hog_test = np.load('dataset/HOG/testHOG.npy')               # Load HOG features
-        hog_train = np.load('dataset/HOG/trainHOG.npy')
 
-        hog_classifier = KNNClassifier(k=18, visu=True)             # Create and train the classifiers
+        # HOG-KNN Classifer
+        if KNN_HOG:
+            hog_test = np.load('dataset/HOG/testHOG.npy')               # Load HOG features
+            hog_train = np.load('dataset/HOG/trainHOG.npy')
 
-        hog_classifier.train(hog_train, trainLabel)                 # Test the classifiers
-        hog_preds = hog_classifier.predict(hog_test)                # Test the classifiers
+            hog_classifier = KNNClassifier(k=i, visu=True)             # Create and train the classifiers
 
-        hog_accuracy = hog_classifier.score(hog_test, testLabel)    # Calculate the accuracy
-        print(f"HOG Accuracy: {hog_accuracy}")
+            hog_classifier.train(hog_train, trainLabel)                 # Test the classifiers
+            hog_preds = hog_classifier.predict(hog_test)                # Test the classifiers
 
-    if KNN_PCA and KNN_HOG:
-        # Compare the classifiers using p-value
-        t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
-        print(f"P-value: {p_value}")
+            hog_accuracy = hog_classifier.score(hog_test, testLabel)    # Calculate the accuracy
+            print(f"HOG Accuracy: {hog_accuracy}")
+            if hog_accuracy > bestHOGaccuracy:
+                bestHOGaccuracy = hog_accuracy
+                bestHOGk = i
+
+        if KNN_PCA and KNN_HOG:
+            # Compare the classifiers using p-value
+            t_stat, p_value = stats.ttest_ind(pca_preds, hog_preds)
+            print(f"P-value: {p_value}")
+    print("best PCA accuracy with k=", bestPCAk, " achieves an accuracy of: " , bestPCAaccuracy, "\n")
+    print("best HOG accuracy with k=", bestHOGk, " achieves an accuracy of: " , bestHOGaccuracy, "\n")
 
 # set name if run directly
 if __name__ == "__main__":

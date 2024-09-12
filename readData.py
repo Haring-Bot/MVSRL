@@ -81,6 +81,10 @@ def main():
     path = downloadDataset(url)
     train_data, train_labels, test_data, test_labels = load_cifar10_data(path)
 
+    os.makedirs("dataset/dataset_split", exist_ok=True)
+    os.makedirs("dataset/PCA", exist_ok=True)
+    os.makedirs("dataset/HOG", exist_ok=True)
+
     np.save("dataset/dataset_split/trainData", train_data)
     np.save("dataset/dataset_split/trainLabel", train_labels)
     np.save("dataset/dataset_split/testData", test_data)

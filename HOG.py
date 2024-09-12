@@ -45,7 +45,7 @@ def compute_hog_features(data, visualize=False):
             ax.set_xticks([])
             ax.set_yticks([])
         plt.tight_layout()
-        plt.show()
+        #plt.show()
 
     return all_features
 
