@@ -8,13 +8,26 @@ from sklearn.base import TransformerMixin
 from skimage import color
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 import readData
 
 
 #Settings
-PCAdimensions = 26
-KNNneighbors = 25
+PCAdimensions = 25
+KNNneighbors = 16
+
+PCAgrid = {
+    "pca__n_components": range(5, 105, 10),
+    "knn__n_neighbors": range(1, 30, 3)
+}
+
+HOGgrid = {
+    'hog__pixels_per_cell': [(6, 6), (8, 8)],
+    'hog__cells_per_block': [(2, 2), (3, 3)],
+    'hog__orientations': [8, 9],
+    'knn__n_neighbors': [5, 10, 25, 50]
+    }
 
 
 class HOGTransformer(BaseEstimator, TransformerMixin):
@@ -52,8 +65,8 @@ def main():
     #create PCA pipeline
     pipelinePCA = Pipeline([
         ("scaler", StandardScaler()),
-        ("pca", PCA(n_components = PCAdimensions)),
-        ("knn", KNeighborsClassifier(n_neighbors = KNNneighbors))
+        ("pca", PCA()),
+        ("knn", KNeighborsClassifier())
     ])
 
     #create HOG pipeline
@@ -62,29 +75,47 @@ def main():
         ("knn", KNeighborsClassifier(n_neighbors = KNNneighbors)) 
     ])
 
+    #GridSearch for parameter tuning
+    gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, cv = 5, scoring = "accuracy")
+    gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, cv=5, scoring = "accuracy")
+
     #train pipelines
-    pipelinePCA.fit(trainData, trainLabel)
-    pipelineHOG.fit(trainData, trainLabel)
+    print("start training...")
+    gridSearchPCA.fit(trainData, trainLabel)
+    gridSearchHOG.fit(trainData, trainLabel)
 
+    #find best model
+    bestModelPCA = gridSearchPCA.best_estimator_
+    bestModelHOG = gridSearchHOG.best_estimator_
+    
     #predict
-    testPredictionsPCA = pipelinePCA.predict(testData)
-    testPredictionsHOG = pipelineHOG.predict(testData)
-
-    #evaluate
+    testPredictionsPCA = bestModelPCA.predict(testData)
+    testPredictionsHOG = bestModelHOG.predict(testData)
+    
+    #accuracy
     accuracyPCA = accuracy_score(testLabel, testPredictionsPCA)
     accuracyHOG = accuracy_score(testLabel, testPredictionsHOG)
-    print(f"Accuracy PCA: {accuracyPCA:.2f}")
-    print(f"Accuracy HOG: {accuracyHOG:.2f}")
+    
+    #results
+    print(f"\n Training completed! \nAn accuracy of {accuracyPCA:.2f} can be achieved with ", gridSearchPCA.best_params_)
+    print(f"\n Training completed! \nAn accuracy of {accuracyHOG:.2f} can be achieved with ", gridSearchHOG.best_params_)
 
 
-    if accuracyPCA > bestAccuracy:
-        print(" ! new highest accuracy !")
-        bestAccuracy = accuracyPCA
-        bestPCAdim = PCAdimensions
-        bestKNNneighbors = KNNneighbors
+    #evaluate
+    #accuracyPCA = accuracy_score(testLabel, testPredictionsPCA)
+    #accuracyHOG = accuracy_score(testLabel, testPredictionsHOG)
+    #print(f"Accuracy PCA: {accuracyPCA:.2f}")
+    #print(f"Accuracy HOG: {accuracyHOG:.2f}")
 
-    print(f"PCA = {PCAdimensions:d}, KNNneighbors = {KNNneighbors:d}  Accuracy = {accuracyPCA:.2f}")
-    print(f"The highest Accuracy of {bestAccuracy:.2f} was achieved with reducing dimensions via PCA to {bestPCAdim:d} and a KNN neighbors value of {bestKNNneighbors:d}")
+
+    # if accuracyPCA > bestAccuracy:
+    #     print(" ! new highest accuracy !")
+    #     bestAccuracy = accuracyPCA
+    #     bestPCAdim = PCAdimensions
+    #     bestKNNneighbors = KNNneighbors
+
+    #print(f"PCA = {PCAdimensions:d}, KNNneighbors = {KNNneighbors:d}  Accuracy = {accuracyPCA:.2f}")
+    #print(f"The highest Accuracy of {bestAccuracy:.2f} was achieved with reducing dimensions via PCA to {bestPCAdim:d} and a KNN neighbors value of {bestKNNneighbors:d}")
 
 
 if __name__ == "__main__":
