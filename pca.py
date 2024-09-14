@@ -51,7 +51,6 @@ def standardize(trainData, testData):
     return trainDataStandardized, testDataStandardized
 
 def checkStandardization(data):
-    # Flatten data if it's multidimensional
     flattened_data = data.reshape(-1, data.shape[-1])
     
     # Calculate mean and standard deviation
@@ -92,7 +91,6 @@ def main():
     np.save('dataset/PCA/testPCA.npy', testPCA)
     np.save('dataset/PCA/trainPCA.npy', trainPCA)
 
-# set name if run directly
 if __name__ == "__main__":
     main()
 
