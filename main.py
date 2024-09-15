@@ -14,21 +14,22 @@ import cv2
 import numpy as np
 
 import readData
-import pca
-import HOG
-import KNN
+import scikit
 
 #download Data
 readData.main()
 
-#perform pca
-pca.main()
+# #perform pca
+# pca.main()
 
-#perform HOG
-HOG.main()
+# #perform HOG
+# HOG.main()
 
-#perform KNN
-KNN.main()
+# #perform KNN
+# KNN.main()
+
+#execute scikit
+scikit.main()
 
 # Create a black image
 #image = np.zeros((500,500,3), np.uint8)
