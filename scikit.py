@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
+from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from skimage.feature import hog
@@ -17,20 +18,48 @@ import readData
 
 
 #Settings
-PCAdimensions = 25
-KNNneighbors = 16
 
+doPCA = True
+doHOG = True
+
+KNNneighbors = range(1, 51, 5)
+
+#fixed values
 PCAgrid = {
-    "pca__n_components": range(5, 105, 10),
-    "knn__n_neighbors": range(1, 30, 3)
+    "pca__n_components": range(1, 100, 10),
+    "knn__n_neighbors": KNNneighbors
 }
 
+#optimise values
+# PCAgrid = {
+#     "pca__n_components": range(5, 105, 10),
+#     "knn__n_neighbors": range(1, 30, 3)
+# }
+
+#fixed values
 HOGgrid = {
-    'hog__pixels_per_cell': [(6, 6), (8, 8)],
-    'hog__cells_per_block': [(2, 2), (3, 3)],
-    'hog__orientations': [8, 9],
-    'knn__n_neighbors': [5, 10, 25, 50]
+    'hog__pixels_per_cell': [(4, 4)],
+    'hog__cells_per_block': [(6, 6)],
+    'hog__orientations': range(1, 50, 5),
+    'knn__n_neighbors': KNNneighbors
     }
+
+#optimise values
+# HOGgrid = {
+#     'hog__pixels_per_cell': [(4,4) ,(6,6), (8, 8)],
+#     'hog__cells_per_block': [(3, 3), (6,6), (9,9)],
+#     'hog__orientations': [5],
+#     'knn__n_neighbors': range(1, 100, 10)
+#     }
+
+
+class ReshapeTransformer(TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        #flatten images
+        return X.reshape(X.shape[0], -1)
 
 
 class HOGTransformer(BaseEstimator, TransformerMixin):
@@ -66,9 +95,10 @@ def reshape_cifar_image(image):
 
 
 def main():
+    
     #prepare data
     readData.main()
-    
+
     trainData = np.load("dataset/dataset_split/trainData.npy")
     testData = np.load("dataset/dataset_split/testData.npy")
     trainLabel = np.load("dataset/dataset_split/trainLabel.npy")
@@ -81,53 +111,67 @@ def main():
     #plt.imshow(trainData[0])
     #plt.show()
 
-    print(f"X_train shape: {trainData.shape}")
-    print(f"y_train shape: {trainLabel.shape}")
-    print(f"X_test shape: {testData.shape}")
-    print(f"y_test shape: {testLabel.shape}")
+    print(f"trainData shape: {trainData.shape}")
+    print(f"trainLabel shape: {trainLabel.shape}")
+    print(f"testData shape: {testData.shape}")
+    print(f"testLabel shape: {testLabel.shape}")
 
     bestAccuracy = 0 
     bestPCAdim = 0
     bestKNNneighbors = 0
 
-    #for KNNneighbors in range(1, 100):
-    #create PCA pipeline
-    pipelinePCA = Pipeline([
-        ("scaler", StandardScaler()),
-        ("pca", PCA()),
-        ("knn", KNeighborsClassifier())
-    ])
+    if doPCA:
+        #create PCA pipeline
+        pipelinePCA = Pipeline([
+            ("reshape", ReshapeTransformer()),
+            ("scaler", StandardScaler()),
+            ("pca", PCA()),
+            ("knn", KNeighborsClassifier())
+        ])
+        #GridSearch for parameter tuning
+        gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, cv = 5, scoring = "accuracy")
 
-    #create HOG pipeline
-    pipelineHOG = Pipeline([
-        ("hog", HOGTransformer()),
-        ("knn", KNeighborsClassifier(n_neighbors = KNNneighbors)) 
-    ])
+        #train pipelines
+        print("start training...")
+        gridSearchPCA.fit(trainData, trainLabel)
 
-    #GridSearch for parameter tuning
-    #gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, cv = 5, scoring = "accuracy")
-    gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, cv=5, scoring = "accuracy")
+        #find best model
+        bestModelPCA = gridSearchPCA.best_estimator_
 
-    #train pipelines
-    #print("start training...")
-    #gridSearchPCA.fit(trainData, trainLabel)
-    gridSearchHOG.fit(trainData, trainLabel)
+        #predict
+        testPredictionsPCA = bestModelPCA.predict(testData)
 
-    #find best model
-    #bestModelPCA = gridSearchPCA.best_estimator_
-    bestModelHOG = gridSearchHOG.best_estimator_
+        #accuracy
+        accuracyPCA = accuracy_score(testLabel, testPredictionsPCA)
+
+        #results
+        print(f"\n Training completed! \nAn accuracy of {accuracyPCA:.2f} can be achieved with ", gridSearchPCA.best_params_)
+
+
+    if doHOG:
+        #create HOG pipeline
+        pipelineHOG = Pipeline([
+            ("hog", HOGTransformer()),
+            ("knn", KNeighborsClassifier(n_neighbors = KNNneighbors)) 
+        ])
+        #GridSearch for parameter tuning
+        gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, cv=5, scoring = "accuracy")
+
+        #train pipelines
+        print("start training...")
+        gridSearchHOG.fit(trainData, trainLabel)
+
+        #find best model
+        bestModelHOG = gridSearchHOG.best_estimator_
     
-    #predict
-    #testPredictionsPCA = bestModelPCA.predict(testData)
-    testPredictionsHOG = bestModelHOG.predict(testData)
+        #predict
+        testPredictionsHOG = bestModelHOG.predict(testData)
     
-    #accuracy
-    #accuracyPCA = accuracy_score(testLabel, testPredictionsPCA)
-    accuracyHOG = accuracy_score(testLabel, testPredictionsHOG)
+        #accuracy
+        accuracyHOG = accuracy_score(testLabel, testPredictionsHOG)
     
-    #results
-    #print(f"\n Training completed! \nAn accuracy of {accuracyPCA:.2f} can be achieved with ", gridSearchPCA.best_params_)
-    print(f"\n Training completed! \nAn accuracy of {accuracyHOG:.2f} can be achieved with ", gridSearchHOG.best_params_)
+        #results
+        print(f"\n Training completed! \nAn accuracy of {accuracyHOG:.2f} can be achieved with ", gridSearchHOG.best_params_)
 
 
     #evaluate
