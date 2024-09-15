@@ -26,4 +26,7 @@ __pycache__/
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-*batch*
+*data_batch*
+*test_batch*
+dataset/cifar-10-batches-py/readme.html
+dataset/cifar-10-batches-py/batches.meta
