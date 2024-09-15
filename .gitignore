@@ -1,6 +1,5 @@
 # Ignore directories where downloaded and extracted datasets are stored
-downloads/
-dataset/
+
 .venv/
 --__pycache__/
 
@@ -26,3 +25,5 @@ __pycache__/
 
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+
+*batch*

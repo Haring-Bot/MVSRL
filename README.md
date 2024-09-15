@@ -8,6 +8,7 @@ Install the following python libraries before executing the main:
 - scikit-learn
 - scikit-image
 - matplotlib
+- statsmodels
 
 ## Dataset
 When executing the main the CIFAR-10 dataset is downlaoded from the website of the university of Toronto.
