@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
-#from scipy.stats import mcnemar
+from statsmodels.stats.contingency_tables import mcnemar
 from sklearn.metrics import confusion_matrix
 
 import readData
@@ -34,8 +34,8 @@ PCAgrid = {
 
 #optimise values
 # PCAgrid = {
-#     "pca__n_components": range(5, 105, 10),
-#     "knn__n_neighbors": range(1, 30, 3)
+#     "pca__n_components": range(5, 105, 5),
+#     "knn__n_neighbors": KNNneighbors
 # }
 
 #fixed values
@@ -46,12 +46,12 @@ HOGgrid = {
     'knn__n_neighbors': KNNneighbors
     }
 
-#optimise values
+# #optimise values
 # HOGgrid = {
-#     'hog__pixels_per_cell': [(4,4) ,(6,6), (8, 8)],
-#     'hog__cells_per_block': [(3, 3), (6,6), (9,9)],
-#     'hog__orientations': [5],
-#     'knn__n_neighbors': range(1, 100, 10)
+#     'hog__pixels_per_cell': [(4,4) ,(6,6), (8, 8), (10,10)],
+#     'hog__cells_per_block': [(3, 3), (6,6), (9,9), (12,12)],
+#     'hog__orientations': range(1, 100, 5),
+#     'knn__n_neighbors': KNNneighbors
 #     }
 
 
@@ -208,9 +208,19 @@ def main():
     else:                                                   #both wrong
                 contingencyTable[1, 1] += 1 
 
-    print(f"\n Contingency Table:\n{contingencyTable}")
+    print(f"\n Contingency Table:\n{contingencyTable}\n")
 
-    #mcNResult = mcnemar(contingencyTable, exact = True)
+    mcNResult = mcnemar(contingencyTable, exact = True)
+
+    alpha = 0.05
+    print(mcNResult)
+    print("alpha = ", alpha)
+
+    # Interpret the p-value
+    if mcNResult.pvalue < alpha:
+        print("\nThe difference between the PCA and HOG models is statistically significant.")
+    else:
+        print("\nThe difference between the PCA and HOG models is not statistically significant.")
 
     #print(f"\nMcNemar's test:\n{mcNResult.statistic}, \n p-value: {mcNResult.pvalue}")
     #print("End Code")
