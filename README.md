@@ -45,12 +45,12 @@ For attaining the optimal hyperparameters for both pipelines **Grid Search** is 
 ## Settings
 The most important settings:
 - **doPCA:** enables the training and evaluation of the PCA pipeline
-- **doHOG:** enables the training and evaluation of the HOG pipeline
-**!!** attention: McNemar's test is only calculated if both doPCA and doHOG are set True **!!**
-- ** KNNneighbors: ** sets the amount of neighbors for the KNN algorithm. Is automatically set for both pipelines.
+- **doHOG:** enables the training and evaluation of the HOG pipeline  
+**!! Attention:** McNemar's test is only calculated if both doPCA and doHOG are set True **!!**  
+- **KNNneighbors:** sets the amount of neighbors for the KNN algorithm. Is automatically set for both pipelines.
 
 ## run
-To run this project simply install all dependencies and execute the main.
+To run this project simply install all dependencies and execute the main.  
 `python main.py`
 
 ## Authors
