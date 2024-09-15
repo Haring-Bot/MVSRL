@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
+from scipy.stats import mcnemar
+from sklearn.metrics import confusion_matrix
 
 import readData
 
@@ -22,11 +24,11 @@ import readData
 doPCA = True
 doHOG = True
 
-KNNneighbors = range(1, 51, 5)
+KNNneighbors = [20]
 
 #fixed values
 PCAgrid = {
-    "pca__n_components": range(1, 100, 10),
+    "pca__n_components": [25],
     "knn__n_neighbors": KNNneighbors
 }
 
@@ -40,7 +42,7 @@ PCAgrid = {
 HOGgrid = {
     'hog__pixels_per_cell': [(4, 4)],
     'hog__cells_per_block': [(6, 6)],
-    'hog__orientations': range(1, 50, 5),
+    'hog__orientations': [8],
     'knn__n_neighbors': KNNneighbors
     }
 
@@ -129,10 +131,11 @@ def main():
             ("knn", KNeighborsClassifier())
         ])
         #GridSearch for parameter tuning
-        gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, cv = 5, scoring = "accuracy")
+        gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, scoring = "accuracy")    #without cross validations
+        #gridSearchPCA = GridSearchCV(pipelinePCA, PCAgrid, cv = 5, scoring = "accuracy")   #with cross validation
 
         #train pipelines
-        print("start training...")
+        print("\nstarted training PCA...")
         gridSearchPCA.fit(trainData, trainLabel)
 
         #find best model
@@ -155,10 +158,11 @@ def main():
             ("knn", KNeighborsClassifier(n_neighbors = KNNneighbors)) 
         ])
         #GridSearch for parameter tuning
-        gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, cv=5, scoring = "accuracy")
+        gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, scoring = "accuracy")            #without cross validation
+        #gridSearchHOG = GridSearchCV(pipelineHOG, HOGgrid, cv=5, scoring = "accuracy")      #with crossvalidation
 
         #train pipelines
-        print("start training...")
+        print("\nstarted training HOG...")
         gridSearchHOG.fit(trainData, trainLabel)
 
         #find best model
@@ -190,7 +194,26 @@ def main():
     #print(f"PCA = {PCAdimensions:d}, KNNneighbors = {KNNneighbors:d}  Accuracy = {accuracyPCA:.2f}")
     #print(f"The highest Accuracy of {bestAccuracy:.2f} was achieved with reducing dimensions via PCA to {bestPCAdim:d} and a KNN neighbors value of {bestKNNneighbors:d}")
 
-    print("End Code")
+    if doPCA and doHOG:
+        print("calculating McNemar's Test")
+        contingencyTable = np.zeros((2,2), dtype = int)
+
+        for nPCApred, nHOGpred, nLabel in zip(testPredictionsPCA, testPredictionsHOG, testLabel):
+            if nPCApred == nLabel and nHOGpred == nLabel:   #both right
+                contingencyTable[0, 0] += 1
+            elif nPCApred == nLabel and nHOGpred != nLabel: #only PCA right
+                contingencyTable[0, 1] += 1  
+            elif nPCApred != nLabel and nHOGpred == nLabel: #only HOG right
+                contingencyTable[1, 0] += 1 
+    else:                                                   #both wrong
+                contingencyTable[1, 1] += 1 
+
+    print(f"\n Contingency Table:\n{contingencyTable}")
+
+    mcNResult = mcnemar(contingencyTable, exact = True)
+
+    print(f"\nMcNemar's test:\n{mcNResult.statistic}, \n p-value: {mcNResult.pvalue}")
+    #print("End Code")
 
 if __name__ == "__main__":
     main()
